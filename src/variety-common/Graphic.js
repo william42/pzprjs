@@ -434,7 +434,7 @@ pzpr.classmgr.makeCommon({
 						} else if (irowake && cell.path2 && cell.path2.color) {
 							color = cell.path2.color;
 						} else if (cell.trial) {
-							color = this.trialcolor;
+							color = this.linetrialcolor;
 						} else {
 							color = this.linecolor;
 						}
@@ -636,7 +636,7 @@ pzpr.classmgr.makeCommon({
 		//---------------------------------------------------------------------------
 		// pc.drawSubNumbers()  Cellの補助数字をCanvasに書き込む
 		//---------------------------------------------------------------------------
-		drawSubNumbers: function() {
+		drawSubNumbers: function(onshade) {
 			var g = this.vinc("cell_subnumber", "auto");
 			var posarray = [5, 4, 2, 3];
 
@@ -649,7 +649,12 @@ pzpr.classmgr.makeCommon({
 						: this.getNumberTextCore_letter(cell.snum[n]);
 					g.vid = "cell_subtext_" + cell.id + "_" + n;
 					if (!!text) {
-						g.fillStyle = !cell.trial ? this.subcolor : this.trialcolor;
+						g.fillStyle =
+							onshade && cell.isShade()
+								? this.subshadecolor
+								: !cell.trial
+								? this.subcolor
+								: this.trialcolor;
 						this.disptext(text, cell.bx * this.bw, cell.by * this.bh, {
 							position: posarray[n],
 							ratio: 0.33,
@@ -996,7 +1001,7 @@ pzpr.classmgr.makeCommon({
 				} else if (err === -1) {
 					return this.noerrcolor;
 				} else if (border.trial) {
-					return this.trialcolor;
+					return this.linetrialcolor;
 				} else {
 					return this.qanscolor;
 				}
@@ -1064,7 +1069,7 @@ pzpr.classmgr.makeCommon({
 				if (border.qsub === 1) {
 					var px = border.bx * this.bw,
 						py = border.by * this.bh;
-					g.fillStyle = !border.trial ? this.pekecolor : this.trialcolor;
+					g.fillStyle = !border.trial ? this.pekecolor : this.linetrialcolor;
 					if (border.isHorz()) {
 						g.fillRectCenter(px, py, 0.5, this.bh - m);
 					} else {
@@ -1116,31 +1121,31 @@ pzpr.classmgr.makeCommon({
 					var LTin = cell.bx > 2,
 						RTin = cell.bx < 2 * this.board.cols - 2;
 
-					var isUP = !UPin || adb.top.ques === 1;
-					var isDN = !DNin || adb.bottom.ques === 1;
-					var isLT = !LTin || adb.left.ques === 1;
-					var isRT = !RTin || adb.right.ques === 1;
+					var isUP = !UPin || adb.top.isBorder();
+					var isDN = !DNin || adb.bottom.isBorder();
+					var isLT = !LTin || adb.left.isBorder();
+					var isRT = !RTin || adb.right.isBorder();
 
 					var isUL =
-						!UPin ||
-						!LTin ||
-						cell.relbd(-2, -1).ques === 1 ||
-						cell.relbd(-1, -2).ques === 1;
+						isUP ||
+						isLT ||
+						cell.relbd(-2, -1).isBorder() ||
+						cell.relbd(-1, -2).isBorder();
 					var isUR =
-						!UPin ||
-						!RTin ||
-						cell.relbd(2, -1).ques === 1 ||
-						cell.relbd(1, -2).ques === 1;
+						isUP ||
+						isRT ||
+						cell.relbd(2, -1).isBorder() ||
+						cell.relbd(1, -2).isBorder();
 					var isDL =
-						!DNin ||
-						!LTin ||
-						cell.relbd(-2, 1).ques === 1 ||
-						cell.relbd(-1, 2).ques === 1;
+						isDN ||
+						isLT ||
+						cell.relbd(-2, 1).isBorder() ||
+						cell.relbd(-1, 2).isBorder();
 					var isDR =
-						!DNin ||
-						!RTin ||
-						cell.relbd(2, 1).ques === 1 ||
-						cell.relbd(1, 2).ques === 1;
+						isDN ||
+						isRT ||
+						cell.relbd(2, 1).isBorder() ||
+						cell.relbd(1, 2).isBorder();
 
 					g.beginPath();
 
@@ -1252,7 +1257,7 @@ pzpr.classmgr.makeCommon({
 				} else if (isIrowake) {
 					return border.path.color;
 				} else {
-					return border.trial ? this.trialcolor : this.linecolor;
+					return border.trial ? this.linetrialcolor : this.linecolor;
 				}
 			}
 			return null;
@@ -1524,7 +1529,7 @@ pzpr.classmgr.makeCommon({
 				// 向き補助記号の描画
 				g.vid = "b_daux_" + border.id;
 				if (dir >= 1 && dir <= 8) {
-					g.strokeStyle = !border.trial ? "rgb(64,64,64)" : this.trialcolor;
+					g.strokeStyle = !border.trial ? "rgb(64,64,64)" : this.linetrialcolor;
 					g.beginPath();
 					switch (dir) {
 						case border.UP:
@@ -1825,7 +1830,7 @@ pzpr.classmgr.makeCommon({
 			} else if (err !== 0) {
 				color = this.noerrcolor;
 			} else if (cell.trial) {
-				color = this.trialcolor;
+				color = this.linetrialcolor;
 			} else {
 				color = this.linecolor;
 			}
@@ -2090,7 +2095,7 @@ pzpr.classmgr.makeCommon({
 			}
 		},
 
-		drawTargetSubNumber: function() {
+		drawTargetSubNumber: function(onshade) {
 			var g = this.vinc("target_subnum", "crispEdges");
 
 			var d = this.range,
@@ -2103,9 +2108,18 @@ pzpr.classmgr.makeCommon({
 			}
 
 			var target = cursor.targetdir;
+			var cell = cursor.getc();
+
+			if (
+				cursor.disableAnum &&
+				this.puzzle.mouse.inputMode.indexOf("number") === -1
+			) {
+				target = 0;
+			}
 
 			g.vid = "target_subnum";
-			g.fillStyle = this.ttcolor;
+			g.fillStyle =
+				onshade && cell && cell.isShade() ? this.ttshadecolor : this.ttcolor;
 			if (this.puzzle.playmode && target !== 0) {
 				var bw = this.bw,
 					bh = this.bh;
@@ -2628,7 +2642,7 @@ pzpr.classmgr.makeCommon({
 				return;
 			}
 
-			var g = this.vinc("piecebank", "crispEdges"),
+			var g = this.vinc("piecebank"),
 				bd = this.board;
 
 			var count = Math.max(bd.bank.pieces.length, this.lastBankPieceCount);

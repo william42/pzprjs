@@ -61,6 +61,7 @@
 			qcmpbgcolor: "rgb(224, 224, 255)",
 			trialcolor: "rgb(160, 160, 160)",
 			subcolor: "rgb(127, 127, 255)",
+			subshadecolor: "rgb(220, 220, 255)",
 
 			// 黒マスの色
 			shadecolor: "black",
@@ -91,6 +92,7 @@
 			linecolor: "rgb(0, 160, 0)", // 色分けなしの場合
 			errlinecolor: "rgb(255, 0, 0)",
 			noerrcolor: "rgb(160, 160, 160)", // エラー表示時, エラーでない線/境界線の描画色
+			linetrialcolor: "rgb(160, 160, 160)",
 
 			movelinecolor: "silver",
 			movetrialcolor: "rgb(255, 160, 0)",
@@ -105,6 +107,7 @@
 			targetColorPlay: "rgb(64,  64, 255)",
 			targetColorTrial: "rgb(255,  64, 255)",
 			ttcolor: "rgb(127,255,127)", // ques=51の入力ターゲット(TargetTriangle)
+			ttshadecolor: "rgb(0,127,0)",
 
 			movecolor: "red",
 
